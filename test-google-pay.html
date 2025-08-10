@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Google Pay - Studio Assinantes</title>
+    <script async src="https://pay.google.com/gp/p/js/pay.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 25px 0;
+            padding: 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        .test-section h2 {
+            color: #495057;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .status {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            padding: 12px 24px;
+            margin: 8px;
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #3367d6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .google-pay-button {
+            background: #000;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 16px 0;
+        }
+        .google-pay-button:hover {
+            background: #333;
+        }
+        .payment-details {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .price-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+            text-align: center;
+            margin: 20px 0;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .emoji {
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Teste Google Pay - Studio Assinantes</h1>
+        
+        <div class="test-section">
+            <h2><span class="emoji">💳</span> Detalhes do Pagamento</h2>
+            <div class="payment-details">
+                <div class="price-display">R$ 99,00/mês</div>
+                <div style="text-align: center; color: #666;">
+                    <strong>Assinatura Premium Studio</strong><br>
+                    Acesso completo à galeria exclusiva por 30 dias
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2><span class="emoji">🏠</span> Informações do Ambiente</h2>
+            <div id="environmentInfo" class="status info">
+                <strong>Ambiente Atual:</strong> <span id="currentEnvironment">Carregando...</span><br>
+                <strong>URL:</strong> <span id="currentUrl">Carregando...</span><br>
+                <strong>Protocolo:</strong> <span id="currentProtocol">Carregando...</span><br>
+                <strong>Dispositivo:</strong> <span id="deviceType">Carregando...</span>
+            </div>
+            <button onclick="updateEnvironmentInfo()">🔄 Atualizar Info</button>
+        </div>
+
+        <div class="test-section">
+            <h2><span class="emoji">🔧</span> Configuração Google Pay</h2>
+            <div id="configStatus" class="status info">
+                <strong>Status:</strong> Inicializando Google Pay API...
+            </div>
+            <button onclick="initializeGooglePay()">🔄 Reinicializar Google Pay</button>
+            <button onclick="checkPaymentAvailability()">✅ Verificar Disponibilidade</button>
+            <button onclick="toggleGatewayType()">🔀 Alternar Gateway</button>
+            <div id="gatewayInfo" class="status info" style="margin-top: 10px;">
+                <strong>Gateway Atual:</strong> <span id="currentGateway">DIRECT (Teste)</span>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2><span class="emoji">🛒</span> Botão de Pagamento</h2>
+            <div id="googlePayButton"></div>
+            <div style="margin: 15px 0;">
+                <button onclick="testPaymentFlow()">🧪 Testar Fluxo Completo</button>
+                <button onclick="validateConfiguration()">✅ Validar Configuração</button>
+                <button onclick="simulatePaymentError()">❌ Simular Erro</button>
+                <button onclick="diagnoseIssues()">🔍 Diagnosticar Problemas</button>
+            </div>
+            <div id="paymentStatus" class="status warning">
+                <strong>Status:</strong> Aguardando inicialização...
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2><span class="emoji">📊</span> Logs de Debug</h2>
+            <button onclick="clearLogs()">🗑️ Limpar Logs</button>
+            <button onclick="showConfiguration()">⚙️ Mostrar Configuração</button>
+            <div id="debugLogs" class="status info">
+                <strong>Logs do sistema:</strong><br>
+                <div id="logContent">Inicializando...</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2><span class="emoji">🔐</span> Chaves de Criptografia</h2>
+            <div class="status info">
+                <strong>Chaves Google Pay configuradas:</strong>
+                <pre id="keysDisplay">Carregando configuração...</pre>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2><span class="emoji">🌐</span> Teste de API Backend</h2>
+            <button onclick="testBackendConnection()">🔗 Testar Conexão</button>
+            <button onclick="testPaymentAPI()">💳 Testar API de Pagamento</button>
+            <div id="backendStatus" class="status info">
+                <strong>Status do Backend:</strong> Não testado
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuração das chaves Google Pay fornecidas
+        const GOOGLE_PAY_KEYS = {
+            "keys": [
+                {
+                    "keyValue": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIsFro6K+IUxRr4yFTOTO+kFCCEvHo7B9IOMLxah6c977oFzX/beObH4a9OfosMHmft3JJZ6B3xpjIb8kduK4/A==",
+                    "protocolVersion": "ECv1"
+                },
+                {
+                    "keyValue": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGnJ7Yo1sX9b4kr4Aa5uq58JRQfzD8bIJXw7WXaap/hVE+PnFxvjx4nVxt79SdRuUVeu++HZD0cGAv4IOznc96w==",
+                    "protocolVersion": "ECv2",
+                    "keyExpiration": "2154841200000"
+                },
+                {
+                    "keyValue": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGnJ7Yo1sX9b4kr4Aa5uq58JRQfzD8bIJXw7WXaap/hVE+PnFxvjx4nVxt79SdRuUVeu++HZD0cGAv4IOznc96w==",
+                    "protocolVersion": "ECv2SigningOnly",
+                    "keyExpiration": "2154841200000"
+                }
+            ]
+        };
+
+        // Configuração Google Pay
+        const baseRequest = {
+            apiVersion: 2,
+            apiVersionMinor: 0
+        };
+
+        const allowedCardNetworks = ['AMEX', 'DISCOVER', 'INTERAC', 'JCB', 'MASTERCARD', 'VISA'];
+        const allowedCardAuthMethods = ['PAN_ONLY', 'CRYPTOGRAM_3DS'];
+
+        // Configuração especial para localhost
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        
+        // Configuração para ambiente local (mais permissiva)
+        const localhostTokenizationSpec = {
+            type: 'DIRECT',
+            parameters: {
+                'protocolVersion': 'ECv2',
+                'publicKey': 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGnJ7Yo1sX9b4kr4Aa5uq58JRQfzD8bIJXw7WXaap/hVE+PnFxvjx4nVxt79SdRuUVeu++HZD0cGAv4IOznc96w=='
+            }
+        };
+
+        // Configuração para gateway direto do Google (mais simples para testes)
+        const tokenizationSpecificationDirect = {
+            type: 'DIRECT',
+            parameters: {
+                'protocolVersion': 'ECv2',
+                'publicKey': 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGnJ7Yo1sX9b4kr4Aa5uq58JRQfzD8bIJXw7WXaap/hVE+PnFxvjx4nVxt79SdRuUVeu++HZD0cGAv4IOznc96w=='
+            }
+        };
+
+        // Configuração para gateway do Google
+        const tokenizationSpecification = {
+            type: 'PAYMENT_GATEWAY',
+            parameters: {
+                'gateway': 'googlepay',
+                'gatewayMerchantId': 'your-google-merchant-id' // Seu merchant ID do Google
+            }
+        };
+
+        // Para localhost, usar configuração mais simples
+        const activeTokenizationSpec = isLocalhost ? localhostTokenizationSpec : tokenizationSpecificationDirect;
+
+        const baseCardPaymentMethod = {
+            type: 'CARD',
+            parameters: {
+                allowedAuthMethods: allowedCardAuthMethods,
+                allowedCardNetworks: allowedCardNetworks
+            }
+        };
+
+        const cardPaymentMethod = Object.assign(
+            {},
+            baseCardPaymentMethod,
+            {
+                tokenizationSpecification: activeTokenizationSpec
+            }
+        );
+
+        let paymentsClient = null;
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString('pt-BR');
+            const logContent = document.getElementById('logContent');
+            const colorMap = {
+                'success': '#28a745',
+                'error': '#dc3545',
+                'warning': '#ffc107',
+                'info': '#17a2b8'
+            };
+            
+            logContent.innerHTML += `
+                <div style="color: ${colorMap[type]}; margin: 5px 0;">
+                    [${timestamp}] ${message}
+                </div>
+            `;
+            logContent.scrollTop = logContent.scrollHeight;
+            console.log(`[GooglePay] ${message}`);
+        }
+
+        function showStatus(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            element.className = `status ${type}`;
+            element.innerHTML = `<strong>Status:</strong> ${message}`;
+        }
+
+        function getGoogleIsReadyToPayRequest() {
+            return Object.assign(
+                {},
+                baseRequest,
+                {
+                    allowedPaymentMethods: [baseCardPaymentMethod]
+                }
+            );
+        }
+
+        function getGooglePaymentDataRequest() {
+            const paymentDataRequest = Object.assign({}, baseRequest);
+            paymentDataRequest.allowedPaymentMethods = [cardPaymentMethod];
+            paymentDataRequest.transactionInfo = getGoogleTransactionInfo();
+            
+            // Configuração específica para localhost
+            paymentDataRequest.merchantInfo = {
+                merchantName: isLocalhost ? 'Studio Assinantes (Local Dev)' : 'Studio Assinantes',
+                merchantId: isLocalhost ? '01234567890123456789' : '01234567890123456789' // ID de merchant válido para teste
+            };
+            
+            // Para localhost, adicionar configurações extras de desenvolvimento
+            if (isLocalhost) {
+                paymentDataRequest.emailRequired = false;
+                paymentDataRequest.shippingAddressRequired = false;
+            }
+            
+            return paymentDataRequest;
+        }
+
+        function getGoogleTransactionInfo() {
+            return {
+                displayItems: [
+                    {
+                        label: 'Assinatura Premium',
+                        type: 'SUBTOTAL',
+                        price: '99.00'
+                    },
+                    {
+                        label: 'Taxa de Processamento',
+                        type: 'TAX',
+                        price: '0.00'
+                    }
+                ],
+                countryCode: 'BR',
+                currencyCode: 'BRL',
+                totalPriceStatus: 'FINAL',
+                totalPrice: '99.00',
+                totalPriceLabel: 'Total'
+            };
+        }
+
+        function initializeGooglePay() {
+            log('🚀 Inicializando Google Pay API...', 'info');
+            log(`🌍 Ambiente detectado: ${isLocalhost ? 'LOCALHOST' : 'REMOTO'}`, 'info');
+            showStatus('configStatus', 'warning', 'Inicializando...');
+            
+            if (!window.google) {
+                log('❌ Google Pay API não carregada', 'error');
+                showStatus('configStatus', 'error', 'Google Pay API não disponível');
+                return;
+            }
+
+            // Configuração específica para localhost
+            const environment = isLocalhost ? 'TEST' : 'TEST'; // Sempre TEST para desenvolvimento
+            
+            // CORREÇÃO: Configurar paymentDataCallbacks corretamente
+            const paymentsClientConfig = {
+                environment: environment,
+                merchantInfo: {
+                    merchantName: 'Studio Assinantes (Dev)',
+                    merchantId: isLocalhost ? '01234567890123456789' : '01234567890123456789'
+                }
+            };
+            
+            // Adicionar callbacks apenas se necessário (para loadPaymentData com callbacks)
+            if (typeof onPaymentAuthorized === 'function') {
+                paymentsClientConfig.paymentDataCallbacks = {
+                    onPaymentAuthorized: onPaymentAuthorized
+                };
+            }
+            
+            paymentsClient = new google.payments.api.PaymentsClient(paymentsClientConfig);
+
+            log(`✅ PaymentsClient criado com sucesso (${environment})`, 'success');
+            log(`🔧 Tokenização: ${activeTokenizationSpec.type}`, 'info');
+            showStatus('configStatus', 'success', `Google Pay inicializado (${environment})`);
+            
+            checkPaymentAvailability();
+        }
+
+        function checkPaymentAvailability() {
+            log('Verificando disponibilidade do Google Pay...', 'info');
+            
+            if (!paymentsClient) {
+                log('❌ PaymentsClient não inicializado', 'error');
+                showStatus('paymentStatus', 'error', 'PaymentsClient não inicializado');
+                return;
+            }
+
+            const isReadyToPayRequest = getGoogleIsReadyToPayRequest();
+            
+            paymentsClient.isReadyToPay(isReadyToPayRequest)
+                .then(function(response) {
+                    if (response.result) {
+                        log('✅ Google Pay disponível', 'success');
+                        showStatus('paymentStatus', 'success', 'Google Pay disponível para pagamento');
+                        createGooglePayButton();
+                    } else {
+                        log('❌ Google Pay não disponível', 'error');
+                        showStatus('paymentStatus', 'error', 'Google Pay não disponível neste dispositivo');
+                    }
+                })
+                .catch(function(err) {
+                    log(`❌ Erro ao verificar disponibilidade: ${err.message}`, 'error');
+                    showStatus('paymentStatus', 'error', `Erro: ${err.message}`);
+                });
+        }
+
+        function createGooglePayButton() {
+            const button = paymentsClient.createButton({
+                onClick: onGooglePaymentButtonClicked,
+                allowedPaymentMethods: [baseCardPaymentMethod]
+            });
+            
+            const container = document.getElementById('googlePayButton');
+            container.innerHTML = '';
+            container.appendChild(button);
+            
+            log('✅ Botão Google Pay criado', 'success');
+        }
+
+        function onGooglePaymentButtonClicked() {
+            log('🔘 Botão Google Pay clicado', 'info');
+            showStatus('paymentStatus', 'warning', 'Processando pagamento...');
+            
+            try {
+                const paymentDataRequest = getGooglePaymentDataRequest();
+                
+                // CRÍTICO: Configurar callbacks obrigatórios para loadPaymentData
+                paymentDataRequest.callbackIntents = ['PAYMENT_AUTHORIZATION'];
+                paymentDataRequest.paymentDataCallbacks = {
+                    onPaymentAuthorized: onPaymentAuthorized
+                };
+                
+                log('📋 PaymentDataRequest criado:', 'info');
+                log(JSON.stringify(paymentDataRequest, null, 2), 'info');
+                
+                paymentsClient.loadPaymentData(paymentDataRequest)
+                    .then(function(paymentData) {
+                        log('✅ Dados de pagamento recebidos do Google Pay', 'success');
+                        log('📋 Estrutura dos dados recebidos:', 'info');
+                        log(`- Keys principais: ${Object.keys(paymentData).join(', ')}`, 'info');
+                        
+                        if (paymentData.paymentMethodData) {
+                            log(`- PaymentMethodData keys: ${Object.keys(paymentData.paymentMethodData).join(', ')}`, 'info');
+                            
+                            if (paymentData.paymentMethodData.tokenizationData) {
+                                log(`- TokenizationData keys: ${Object.keys(paymentData.paymentMethodData.tokenizationData).join(', ')}`, 'info');
+                            } else {
+                                log('⚠️ TokenizationData não encontrado!', 'warning');
+                            }
+                        } else {
+                            log('⚠️ PaymentMethodData não encontrado!', 'warning');
+                        }
+                        
+                        processPayment(paymentData);
+                    })
+                    .catch(function(err) {
+                        log(`❌ Erro no loadPaymentData: ${err.message}`, 'error');
+                        log(`❌ Código do erro: ${err.statusCode || 'N/A'}`, 'error');
+                        log(`❌ Detalhes: ${JSON.stringify(err, null, 2)}`, 'error');
+                        
+                        // Mostrar erro mais específico baseado no tipo
+                        let errorMessage = 'Erro no pagamento';
+                        if (err.statusCode === 'CANCELED') {
+                            errorMessage = 'Pagamento cancelado pelo usuário';
+                        } else if (err.statusCode === 'DEVELOPER_ERROR') {
+                            errorMessage = 'Erro de configuração - verifique merchant ID e gateway';
+                        } else if (err.message) {
+                            errorMessage = err.message;
+                        }
+                        
+                        showStatus('paymentStatus', 'error', errorMessage);
+                    });
+                    
+            } catch (error) {
+                log(`❌ Erro antes do loadPaymentData: ${error.message}`, 'error');
+                showStatus('paymentStatus', 'error', `Erro na inicialização: ${error.message}`);
+            }
+        }
+
+        function processPayment(paymentData) {
+            log('💳 Processando pagamento...', 'info');
+            
+            try {
+                // Verificar se os dados do pagamento estão válidos
+                if (!paymentData) {
+                    throw new Error('PaymentData é null ou undefined');
+                }
+                
+                log('📋 Estrutura do paymentData:', 'info');
+                log(`- Tipo: ${typeof paymentData}`, 'info');
+                log(`- Keys: ${Object.keys(paymentData).join(', ')}`, 'info');
+                
+                if (!paymentData.paymentMethodData) {
+                    log('❌ paymentMethodData não encontrado', 'error');
+                    log('📋 Conteúdo completo do paymentData:', 'error');
+                    log(JSON.stringify(paymentData, null, 2), 'error');
+                    throw new Error('paymentMethodData não encontrado nos dados de pagamento');
+                }
+                
+                log('� Estrutura do paymentMethodData:', 'info');
+                log(`- Keys: ${Object.keys(paymentData.paymentMethodData).join(', ')}`, 'info');
+                
+                // Verificar se existe tokenizationData
+                if (!paymentData.paymentMethodData.tokenizationData) {
+                    log('❌ tokenizationData não encontrado', 'error');
+                    log('📋 Conteúdo do paymentMethodData:', 'error');
+                    log(JSON.stringify(paymentData.paymentMethodData, null, 2), 'error');
+                    throw new Error('tokenizationData não encontrado');
+                }
+                
+                // Extrair token de pagamento
+                const paymentToken = paymentData.paymentMethodData.tokenizationData.token;
+                if (!paymentToken) {
+                    log('❌ Token não encontrado em tokenizationData', 'error');
+                    log('📋 Conteúdo do tokenizationData:', 'error');
+                    log(JSON.stringify(paymentData.paymentMethodData.tokenizationData, null, 2), 'error');
+                    throw new Error('Token de pagamento não encontrado');
+                }
+                
+                log('🔑 Token de pagamento extraído com sucesso', 'success');
+                log(`📏 Tamanho do token: ${paymentToken.length} caracteres`, 'info');
+                
+                // Simular chamada para o backend
+                simulateBackendPayment(paymentToken, paymentData)
+                    .then(result => {
+                        log('✅ Pagamento processado com sucesso!', 'success');
+                        showStatus('paymentStatus', 'success', 'Pagamento aprovado! Assinatura ativada.');
+                        
+                        // Mostrar detalhes do resultado
+                        const logContent = document.getElementById('logContent');
+                        logContent.innerHTML += `
+                            <div style="background: #d4edda; padding: 15px; border-radius: 8px; margin: 10px 0; border: 1px solid #c3e6cb;">
+                                <strong>✅ Pagamento Aprovado:</strong><br>
+                                <strong>ID da Transação:</strong> ${result.transactionId}<br>
+                                <strong>Valor:</strong> R$ ${result.amount}<br>
+                                <strong>Status:</strong> ${result.status}<br>
+                                <strong>Data:</strong> ${new Date().toLocaleString('pt-BR')}<br>
+                                ${result.subscriptionId ? `<strong>Subscription ID:</strong> ${result.subscriptionId}<br>` : ''}
+                            </div>
+                        `;
+                    })
+                    .catch(error => {
+                        log(`❌ Erro no backend: ${error.message}`, 'error');
+                        showStatus('paymentStatus', 'error', `Erro no processamento: ${error.message}`);
+                    });
+                    
+            } catch (error) {
+                log(`❌ Erro ao processar pagamento: ${error.message}`, 'error');
+                log(`📍 Stack trace: ${error.stack}`, 'error');
+                showStatus('paymentStatus', 'error', `Erro: ${error.message}`);
+            }
+        }
+        
+        async function simulateBackendPayment(token, paymentData) {
+            log('🔗 Conectando com backend...', 'info');
+            
+            try {
+                // Fazer requisição real para o backend
+                const response = await fetch('/api/google-pay', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        paymentToken: token,
+                        paymentData: paymentData,
+                        userEmail: 'test@studio.com'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || `HTTP ${response.status}`);
+                }
+                
+                if (result.success) {
+                    log('✅ Backend confirmou o pagamento', 'success');
+                    return {
+                        transactionId: result.transactionId,
+                        amount: '99.00',
+                        status: 'APPROVED',
+                        paymentMethod: 'Google Pay',
+                        timestamp: Date.now(),
+                        subscriptionId: result.subscriptionId
+                    };
+                } else {
+                    throw new Error(result.error || 'Pagamento rejeitado');
+                }
+                
+            } catch (error) {
+                log(`❌ Erro na comunicação com backend: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        function onPaymentAuthorized(paymentData) {
+            return new Promise(function(resolve, reject) {
+                log('🔐 Pagamento autorizado pelo Google Pay', 'success');
+                
+                try {
+                    // Validar dados do pagamento
+                    if (!paymentData || !paymentData.paymentMethodData) {
+                        throw new Error('Dados de pagamento inválidos recebidos');
+                    }
+                    
+                    // Processar o pagamento
+                    processPayment(paymentData);
+                    
+                    // Resolver com sucesso
+                    resolve({
+                        transactionState: 'SUCCESS'
+                    });
+                    
+                } catch (error) {
+                    log(`❌ Erro na autorização: ${error.message}`, 'error');
+                    
+                    // Resolver com erro
+                    resolve({
+                        transactionState: 'ERROR',
+                        error: {
+                            reason: 'PAYMENT_PROCESSING_ERROR',
+                            message: error.message
+                        }
+                    });
+                }
+            });
+        }
+
+        function clearLogs() {
+            document.getElementById('logContent').innerHTML = 'Logs limpos.';
+        }
+
+        function showConfiguration() {
+            const logContent = document.getElementById('logContent');
+            const tokenSpec = activeTokenizationSpec;
+            
+            logContent.innerHTML += `
+                <div style="background: #e9ecef; padding: 15px; border-radius: 4px; margin: 10px 0;">
+                    <strong>Configuração Atual:</strong><br>
+                    <strong>Ambiente:</strong> TEST<br>
+                    <strong>Tipo de Tokenização:</strong> ${tokenSpec.type}<br>
+                    <strong>Gateway:</strong> ${tokenSpec.type === 'PAYMENT_GATEWAY' ? tokenSpec.parameters.gateway : 'Direto Google'}<br>
+                    <strong>Redes Aceitas:</strong> ${allowedCardNetworks.join(', ')}<br>
+                    <strong>Métodos de Auth:</strong> ${allowedCardAuthMethods.join(', ')}<br>
+                    <strong>Moeda:</strong> BRL<br>
+                    <strong>Valor:</strong> R$ 99,00<br>
+                    <strong>Merchant:</strong> Studio Assinantes<br>
+                    <strong>API Version:</strong> ${baseRequest.apiVersion}.${baseRequest.apiVersionMinor}
+                </div>
+            `;
+        }
+
+        // Mostrar chaves de criptografia
+        function displayKeys() {
+            document.getElementById('keysDisplay').textContent = JSON.stringify(GOOGLE_PAY_KEYS, null, 2);
+        }
+
+        // Inicialização automática
+        window.onload = function() {
+            log('🚀 Página carregada, aguardando Google Pay API...', 'info');
+            displayKeys();
+            updateEnvironmentInfo();
+            
+            // Aguardar um pouco para garantir que a API está carregada
+            setTimeout(() => {
+                initializeGooglePay();
+            }, 1000);
+        };
+        
+        // Atualizar informações do ambiente
+        function updateEnvironmentInfo() {
+            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isChrome = /Chrome/.test(navigator.userAgent);
+            
+            document.getElementById('currentEnvironment').textContent = isLocalhost ? 'LOCALHOST (Desenvolvimento)' : 'REMOTO';
+            document.getElementById('currentUrl').textContent = window.location.href;
+            document.getElementById('currentProtocol').textContent = window.location.protocol;
+            document.getElementById('deviceType').textContent = `${isMobile ? 'Móvel' : 'Desktop'} - ${isChrome ? 'Chrome' : 'Outro navegador'}`;
+            
+            // Mostrar avisos específicos para localhost
+            if (isLocalhost) {
+                const envInfo = document.getElementById('environmentInfo');
+                envInfo.innerHTML += `
+                    <div style="margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 4px; border: 1px solid #ffeaa7;">
+                        <strong>⚠️ Localhost Detectado:</strong><br>
+                        • Google Pay pode ter funcionalidade limitada<br>
+                        • Para teste completo, use dispositivo Android<br>
+                        • Certifique-se de ter Google Pay instalado<br>
+                        • Adicione um cartão de teste no Google Pay
+                    </div>
+                `;
+            }
+        }
+        
+        // Funções de teste adicionais
+        function testPaymentFlow() {
+            log('🧪 Iniciando teste do fluxo de pagamento...', 'info');
+            
+            if (!paymentsClient) {
+                log('❌ PaymentsClient não inicializado', 'error');
+                return;
+            }
+            
+            log('1️⃣ Verificando disponibilidade...', 'info');
+            checkPaymentAvailability();
+            
+            setTimeout(() => {
+                log('2️⃣ Configuração validada', 'success');
+                log('3️⃣ Fluxo de teste concluído - clique no botão Google Pay para continuar', 'info');
+            }, 1000);
+        }
+        
+        function validateConfiguration() {
+            log('⚙️ Validando configuração...', 'info');
+            
+            const errors = [];
+            
+            // Verificar se a API está carregada
+            if (!window.google) {
+                errors.push('Google Pay API não carregada');
+            }
+            
+            // Verificar configuração de tokenização
+            const tokenSpec = activeTokenizationSpec;
+            if (tokenSpec.type === 'PAYMENT_GATEWAY') {
+                if (!tokenSpec.parameters['gatewayMerchantId']) {
+                    errors.push('Gateway Merchant ID não configurado');
+                }
+            } else if (tokenSpec.type === 'DIRECT') {
+                if (!tokenSpec.parameters['publicKey']) {
+                    errors.push('Chave pública não configurada');
+                }
+            }
+            
+            // Verificar dados da transação
+            const transactionInfo = getGoogleTransactionInfo();
+            if (!transactionInfo.totalPrice || transactionInfo.totalPrice === '0.00') {
+                errors.push('Valor da transação inválido');
+            }
+            
+            // Verificar merchant info
+            const paymentRequest = getGooglePaymentDataRequest();
+            if (!paymentRequest.merchantInfo || !paymentRequest.merchantInfo.merchantName) {
+                errors.push('Informações do merchant não configuradas');
+            }
+            
+            if (errors.length === 0) {
+                log('✅ Configuração válida - tudo OK!', 'success');
+                log(`📋 Usando tokenização: ${tokenSpec.type}`, 'info');
+                showStatus('configStatus', 'success', 'Configuração validada com sucesso');
+            } else {
+                log(`❌ Erros encontrados: ${errors.join(', ')}`, 'error');
+                showStatus('configStatus', 'error', `Erros: ${errors.join(', ')}`);
+            }
+        }
+        
+        function simulatePaymentError() {
+            log('⚠️ Simulando erro de pagamento...', 'warning');
+            
+            const errorTypes = [
+                'PAYMENT_PROCESSING_ERROR',
+                'NETWORK_ERROR',
+                'INVALID_PAYMENT_METHOD',
+                'MERCHANT_ACCOUNT_ERROR'
+            ];
+            
+            const randomError = errorTypes[Math.floor(Math.random() * errorTypes.length)];
+            
+            setTimeout(() => {
+                log(`❌ Erro simulado: ${randomError}`, 'error');
+                showStatus('paymentStatus', 'error', `Erro simulado: ${randomError}`);
+                
+                // Mostrar sugestões de solução
+                const logContent = document.getElementById('logContent');
+                logContent.innerHTML += `
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 10px 0; border: 1px solid #ffeaa7;">
+                        <strong>💡 Dicas para resolver erros:</strong><br>
+                        • Verificar se o merchant ID está correto<br>
+                        • Confirmar se as chaves de API estão válidas<br>
+                        • Testar em ambiente de produção vs teste<br>
+                        • Verificar se o domínio está autorizado<br>
+                        • Confirmar configuração do gateway de pagamento
+                    </div>
+                `;
+            }, 1000);
+        }
+        
+        // Testes de backend
+        async function testBackendConnection() {
+            log('🔗 Testando conexão com backend...', 'info');
+            showStatus('backendStatus', 'warning', 'Testando conexão...');
+            
+            try {
+                const response = await fetch('/api/google-pay', {
+                    method: 'GET'
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    log('✅ Backend conectado com sucesso', 'success');
+                    showStatus('backendStatus', 'success', `Backend ativo - ${result.environment}`);
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+            } catch (error) {
+                log(`❌ Erro de conexão: ${error.message}`, 'error');
+                showStatus('backendStatus', 'error', `Erro de conexão: ${error.message}`);
+            }
+        }
+        
+        async function testPaymentAPI() {
+            log('💳 Testando API de pagamento...', 'info');
+            showStatus('backendStatus', 'warning', 'Testando API de pagamento...');
+            
+            try {
+                const testPayload = {
+                    paymentToken: 'test_token_' + Date.now(),
+                    paymentData: {
+                        test: true,
+                        amount: '99.00'
+                    },
+                    userEmail: 'test@studio.com'
+                };
+                
+                const response = await fetch('/api/google-pay', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testPayload)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    log('✅ API de pagamento funcionando', 'success');
+                    showStatus('backendStatus', 'success', 'API de pagamento OK');
+                    
+                    // Mostrar detalhes do teste
+                    const logContent = document.getElementById('logContent');
+                    logContent.innerHTML += `
+                        <div style="background: #d4edda; padding: 15px; border-radius: 8px; margin: 10px 0; border: 1px solid #c3e6cb;">
+                            <strong>✅ Teste da API bem-sucedido:</strong><br>
+                            <strong>Transaction ID:</strong> ${result.transactionId}<br>
+                            <strong>Subscription ID:</strong> ${result.subscriptionId}<br>
+                            <strong>Status:</strong> ${result.subscription?.status}
+                        </div>
+                    `;
+                } else {
+                    throw new Error(result.error || `HTTP ${response.status}`);
+                }
+                
+            } catch (error) {
+                log(`❌ Erro na API: ${error.message}`, 'error');
+                showStatus('backendStatus', 'error', `Erro na API: ${error.message}`);
+            }
+        }
+        
+        // Função de diagnóstico completo
+        function diagnoseIssues() {
+            log('🔍 Iniciando diagnóstico completo...', 'info');
+            log(`🌍 Executando em: ${window.location.href}`, 'info');
+            log(`📱 User Agent: ${navigator.userAgent.substring(0, 100)}...`, 'info');
+            
+            const issues = [];
+            const warnings = [];
+            
+            // 1. Verificar ambiente
+            if (isLocalhost) {
+                log('🏠 Ambiente LOCALHOST detectado', 'info');
+                warnings.push('Executando em localhost - algumas funcionalidades podem ser limitadas');
+            }
+            
+            // 2. Verificar HTTPS (não necessário para localhost)
+            if (!isLocalhost && window.location.protocol !== 'https:') {
+                issues.push('Google Pay requer HTTPS em produção (OK para localhost)');
+            }
+            
+            // 3. Verificar se Google Pay API está carregada
+            if (!window.google) {
+                issues.push('Google Pay API não está carregada');
+            } else {
+                log('✅ Google Pay API carregada', 'success');
+                
+                // Verificar versão da API
+                if (window.google.payments && window.google.payments.api) {
+                    log('✅ Google Payments API disponível', 'success');
+                } else {
+                    issues.push('Google Payments API não encontrada');
+                }
+            }
+            
+            // 4. Verificar PaymentsClient
+            if (!paymentsClient) {
+                issues.push('PaymentsClient não foi inicializado');
+            } else {
+                log('✅ PaymentsClient inicializado', 'success');
+            }
+            
+            // 5. Verificar configuração de tokenização para localhost
+            const tokenSpec = activeTokenizationSpec;
+            log(`🔧 Tokenização configurada: ${tokenSpec.type}`, 'info');
+            
+            if (tokenSpec.type === 'DIRECT') {
+                if (!tokenSpec.parameters.publicKey) {
+                    issues.push('Chave pública não configurada para tokenização DIRECT');
+                } else {
+                    log('✅ Chave pública configurada', 'success');
+                }
+                
+                if (isLocalhost) {
+                    log('✅ Tokenização DIRECT adequada para localhost', 'success');
+                }
+            }
+            
+            // 6. Verificar dispositivo/navegador
+            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isChrome = /Chrome/.test(navigator.userAgent);
+            
+            if (!isMobile && !isLocalhost) {
+                warnings.push('Google Pay funciona melhor em dispositivos móveis Android');
+            }
+            
+            if (!isChrome) {
+                warnings.push('Recomendado usar Google Chrome para melhor compatibilidade');
+            }
+            
+            // 7. Verificar se há métodos de pagamento disponíveis
+            if (paymentsClient) {
+                log('🔍 Testando disponibilidade do Google Pay...', 'info');
+                
+                paymentsClient.isReadyToPay(getGoogleIsReadyToPayRequest())
+                    .then(response => {
+                        if (response.result) {
+                            log('✅ Google Pay está pronto para pagamentos', 'success');
+                            
+                            // Para localhost, adicionar informação específica
+                            if (isLocalhost) {
+                                warnings.push('Em localhost, o Google Pay pode ter funcionalidade limitada');
+                                warnings.push('Para teste completo, use dispositivo móvel com Google Pay instalado');
+                            }
+                        } else {
+                            issues.push('Google Pay não está disponível neste dispositivo/navegador');
+                            
+                            if (isLocalhost) {
+                                warnings.push('Tente: 1) Abrir em Android Chrome, 2) Instalar Google Pay, 3) Adicionar cartão');
+                            }
+                        }
+                        
+                        // Mostrar resultado do diagnóstico
+                        showDiagnosticResults(issues, warnings);
+                    })
+                    .catch(err => {
+                        issues.push(`Erro ao verificar disponibilidade: ${err.message}`);
+                        
+                        if (isLocalhost) {
+                            warnings.push('Em localhost, erros de disponibilidade são normais para desktop');
+                        }
+                        
+                        showDiagnosticResults(issues, warnings);
+                    });
+            } else {
+                showDiagnosticResults(issues, warnings);
+            }
+        }
+        
+        function showDiagnosticResults(issues, warnings) {
+            const logContent = document.getElementById('logContent');
+            
+            let resultHtml = `
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0; border: 1px solid #dee2e6;">
+                    <strong>🔍 Resultado do Diagnóstico:</strong><br><br>
+            `;
+            
+            if (issues.length === 0) {
+                resultHtml += '<div style="color: #28a745;"><strong>✅ Nenhum problema crítico encontrado!</strong></div><br>';
+            } else {
+                resultHtml += '<div style="color: #dc3545;"><strong>❌ Problemas encontrados:</strong></div>';
+                issues.forEach(issue => {
+                    resultHtml += `<div style="color: #dc3545; margin-left: 20px;">• ${issue}</div>`;
+                });
+                resultHtml += '<br>';
+            }
+            
+            if (warnings.length > 0) {
+                resultHtml += '<div style="color: #ffc107;"><strong>⚠️ Avisos:</strong></div>';
+                warnings.forEach(warning => {
+                    resultHtml += `<div style="color: #856404; margin-left: 20px;">• ${warning}</div>`;
+                });
+            }
+            
+            resultHtml += '</div>';
+            
+            logContent.innerHTML += resultHtml;
+            logContent.scrollTop = logContent.scrollHeight;
+            
+            log(`🔍 Diagnóstico concluído - ${issues.length} problemas, ${warnings.length} avisos`, 'info');
+        }
+        
+        // Função para alternar entre tipos de gateway
+        let useDirectGateway = true;
+        
+        function toggleGatewayType() {
+            useDirectGateway = !useDirectGateway;
+            
+            if (useDirectGateway) {
+                activeTokenizationSpec = tokenizationSpecificationDirect;
+                document.getElementById('currentGateway').textContent = 'DIRECT (Teste)';
+                log('🔄 Alterado para gateway DIRECT', 'info');
+            } else {
+                activeTokenizationSpec = tokenizationSpecification;
+                document.getElementById('currentGateway').textContent = 'PAYMENT_GATEWAY (Google)';
+                log('🔄 Alterado para PAYMENT_GATEWAY', 'info');
+            }
+            
+            // Atualizar a configuração do cardPaymentMethod
+            cardPaymentMethod.tokenizationSpecification = activeTokenizationSpec;
+            
+            log('⚙️ Reinicializando com nova configuração...', 'info');
+            initializeGooglePay();
+        }
+    </script>
+</body>
+</html>

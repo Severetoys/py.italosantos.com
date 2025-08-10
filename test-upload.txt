@@ -1,0 +1,1 @@
+Testando upload otimizado sem base64

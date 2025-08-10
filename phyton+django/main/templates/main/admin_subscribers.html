@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Administração de Assinantes</title>
+</head>
+
+<body>
+    <h1>Administração de Assinantes (Face ID)</h1>
+    {% if message %}
+    <p style="color:green;">{{ message }}</p>
+    {% endif %}
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Face ID</th>
+            <th>Ações</th>
+        </tr>
+        {% for subscriber in subscribers %}
+        <tr>
+            <td>{{ subscriber.id }}</td>
+            <td>{{ subscriber.name }}</td>
+            <td>{{ subscriber.email }}</td>
+            <td>{{ subscriber.face_id }}</td>
+            <td>
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="subscriber_id" value="{{ subscriber.id }}">
+                    <button type="submit">Remover</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="/admin-dashboard">Voltar para Dashboard</a>
+</body>
+
+</html>

@@ -1,0 +1,18 @@
+<!-- Placeholder para vídeo -->
+<svg width="400" height="500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500">
+  <defs>
+    <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4834d4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#686de0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="500" fill="url(#grad2)"/>
+  <circle cx="200" cy="200" r="50" fill="rgba(255,255,255,0.3)"/>
+  <polygon points="185,175 185,225 225,200" fill="white"/>
+  <rect x="50" y="300" width="300" height="8" rx="4" fill="rgba(255,255,255,0.3)"/>
+  <rect x="50" y="300" width="150" height="8" rx="4" fill="white"/>
+  <text x="200" y="350" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white">VÍDEO EXCLUSIVO</text>
+  <text x="200" y="380" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="rgba(255,255,255,0.8)">Conteúdo Premium</text>
+  <rect x="350" y="30" width="40" height="20" rx="10" fill="rgba(255,215,0,0.9)"/>
+  <text x="370" y="42" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="black">VIP</text>
+</svg>

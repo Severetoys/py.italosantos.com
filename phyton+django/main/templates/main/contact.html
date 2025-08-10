@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Contato</title>
+</head>
+
+<body>
+    <h1>Contato</h1>
+    {% if message %}
+    <p style="color:green;">{{ message }}</p>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <input type="text" name="name" placeholder="Nome" required><br>
+        <input type="email" name="email" placeholder="Email" required><br>
+        <textarea name="content" placeholder="Mensagem" required></textarea><br>
+        <button type="submit">Enviar</button>
+    </form>
+    <a href="/">Voltar para Home</a>
+</body>
+
+</html>

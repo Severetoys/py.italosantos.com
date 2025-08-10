@@ -1,0 +1,252 @@
+
+"use client";
+
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import { Loader2, AlertCircle, Camera, Twitter, Instagram, Upload } from 'lucide-react';
+import Image from "next/image";
+import { useToast } from "../../hooks/use-toast";
+import { twitterFlow, type TwitterMediaInput, type TwitterMediaOutput } from '../../ai/flows/twitter-flow';
+import { fetchInstagramProfileFeed, type InstagramMedia as ProfileInstagramMedia } from '../../ai/flows/instagram-feed-flow';
+import { collection, getDocs, Timestamp, orderBy, query } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
+
+// Interfaces para os tipos de mídia
+interface TwitterMedia {
+  url?: string;
+  preview_image_url?: string;
+  type: string;
+  media_key: string;
+}
+
+// Tipo para tweet com mídia (baseado no novo schema)
+interface TweetWithMedia {
+  id: string;
+  text: string;
+  created_at?: string;
+  media: TwitterMedia[];
+  username: string;
+  profile_image_url?: string;
+  isRetweet?: boolean;
+}
+
+interface UploadedPhoto {
+  id: string;
+  title: string;
+  imageUrl: string;
+}
+
+// Componentes de estado reutilizáveis
+const FeedLoading = ({ message }: { message: string }) => (
+  <div className="flex flex-col items-center justify-center min-h-[400px]">
+    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+    <p className="mt-4 text-muted-foreground">{message}</p>
+  </div>
+);
+
+const FeedError = ({ message }: { message: string }) => (
+  <div className="flex flex-col items-center justify-center min-h-[400px] text-destructive bg-destructive/10 rounded-lg p-4">
+    <AlertCircle className="h-12 w-12" />
+    <p className="mt-4 font-semibold">Erro ao carregar</p>
+    <p className="text-sm text-center">{message}</p>
+  </div>
+);
+
+const FeedEmpty = ({ message }: { message: string }) => (
+  <div className="flex flex-col items-center justify-center min-h-[400px] text-muted-foreground">
+    <Camera className="h-12 w-12" />
+    <p className="mt-4 text-lg font-semibold text-center">{message}</p>
+  </div>
+);
+
+
+const TwitterPhotos = () => {
+    const { toast } = useToast();
+    const [tweets, setTweets] = useState<TweetWithMedia[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchTwitter = async () => {
+            setIsLoading(true);
+            setError(null);
+            try {
+                const response = await twitterFlow({ 
+                    username: 'Severepics', 
+                    maxResults: 100,
+                    mediaType: 'photos' 
+                });
+                setTweets(response.tweets);
+            } catch (e: any) {
+                const errorMessage = e.message || "Ocorreu um erro desconhecido.";
+                setError(`Não foi possível carregar o feed do Twitter. Motivo: ${errorMessage}`);
+                toast({
+                    variant: 'destructive',
+                    title: 'Erro ao Carregar o Feed do Twitter',
+                    description: errorMessage,
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchTwitter();
+    }, [toast]);
+    
+    const photos = tweets.flatMap(tweet => 
+        tweet.media.filter(m => m.type === 'photo' && m.url)
+    );
+
+    if (isLoading) return <FeedLoading message="Carregando fotos do X (Twitter)..." />;
+    if (error) return <FeedError message={error} />;
+    if (photos.length === 0) return <FeedEmpty message="Nenhuma foto encontrada no feed do Twitter." />;
+
+    return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {photos.map(media => (
+                <div key={media.media_key} className="group relative aspect-square overflow-hidden rounded-lg border border-primary/20 hover:border-primary hover:shadow-neon-red-light transition-all">
+                    <Image src={media.url!} alt="Twitter Photo" width={600} height={600} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" data-ai-hint="twitter feed image" />
+                </div>
+            ))}
+        </div>
+    );
+};
+
+// Componente para a aba do Instagram (@Severepics)
+const InstagramProfileFeed = () => {
+    const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(true);
+    const [media, setMedia] = useState<ProfileInstagramMedia[]>([]);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const getFeed = async () => {
+            setIsLoading(true);
+            setError(null);
+            try {
+                const response = await fetchInstagramProfileFeed();
+                if(response.error) {
+                    setError(`Não foi possível carregar as fotos do Instagram. Motivo: ${response.error}`);
+                } else {
+                    const photosOnly = response.media.filter(m => m.media_type === 'IMAGE' && m.media_url);
+                    setMedia(photosOnly);
+                }
+            } catch (e: any) {
+                const errorMessage = e.message || "Ocorreu um erro desconhecido.";
+                setError(`Não foi possível carregar as fotos do Instagram. Motivo: ${errorMessage}`);
+                toast({
+                    variant: 'destructive',
+                    title: 'Erro ao Carregar o Feed do Instagram',
+                    description: errorMessage,
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        getFeed();
+    }, [toast]);
+
+    if (isLoading) return <FeedLoading message="Carregando feed do Instagram (@severepics)..." />;
+    if (error) return <FeedError message={error} />;
+    if (media.length === 0) return <FeedEmpty message="Nenhuma foto encontrada no feed do Instagram." />;
+
+    return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {media.map((item) => (
+                <a key={item.id} href={item.permalink} target="_blank" rel="noopener noreferrer" className="group relative aspect-square overflow-hidden rounded-lg border border-primary/20 hover:border-primary hover:shadow-neon-red-light transition-all">
+                    <Image src={item.media_url!} alt={item.caption || 'Instagram Post'} width={600} height={600} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" data-ai-hint="instagram feed image"/>
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        {item.caption && <p className="text-white text-sm font-bold line-clamp-2">{item.caption}</p>}
+                    </div>
+                </a>
+            ))}
+        </div>
+    );
+};
+
+
+// Componente para a aba de Uploads
+const UploadsFeed = () => {
+    const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(true);
+    const [photos, setPhotos] = useState<UploadedPhoto[]>([]);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchPhotos = async () => {
+            setIsLoading(true);
+            setError(null);
+            try {
+                const photosCollection = collection(db, "photos");
+                const q = query(photosCollection, orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
+                const photosList = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                } as UploadedPhoto));
+                setPhotos(photosList);
+            } catch (e: any) {
+                setError("Não foi possível carregar as fotos do servidor.");
+                toast({
+                    variant: "destructive",
+                    title: "Erro ao Carregar Fotos",
+                    description: "Houve um problema ao buscar as fotos enviadas.",
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchPhotos();
+    }, [toast]);
+
+    if (isLoading) return <FeedLoading message="Carregando fotos enviadas..." />;
+    if (error) return <FeedError message={error} />;
+    if (photos.length === 0) return <FeedEmpty message="Nenhuma foto foi enviada ainda." />;
+
+    return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {photos.map(photo => (
+                <div key={photo.id} className="group relative aspect-square overflow-hidden rounded-lg border border-primary/20 hover:border-primary hover:shadow-neon-red-light transition-all">
+                    <Image src={photo.imageUrl} alt={photo.title} width={600} height={600} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" data-ai-hint="uploaded gallery image"/>
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <p className="text-white text-sm font-bold">{photo.title}</p>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+
+export default function FotosPage() {
+  return (
+    <main className="flex flex-1 w-full flex-col items-center p-4 bg-background">
+      <Card className="w-full max-w-6xl animate-in fade-in-0 zoom-in-95 duration-500 shadow-neon-red-strong border-primary/50 bg-card/90 backdrop-blur-xl">
+        <CardHeader className="text-center">
+          <CardTitle className="text-3xl text-primary text-shadow-neon-red-light flex items-center justify-center gap-3">
+            <Camera /> Galeria de Fotos
+          </CardTitle>
+          <CardDescription>Feeds de imagens de várias fontes.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="twitter_fotos" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 bg-background/50 border border-primary/20">
+              <TabsTrigger value="twitter_fotos" className="data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground data-[state=active]:shadow-neon-red-light"><Twitter className="h-4 w-4 mr-2"/>Fotos do X</TabsTrigger>
+              <TabsTrigger value="instagram" className="data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground data-[state=active]:shadow-neon-red-light"><Instagram className="h-4 w-4 mr-2"/>Instagram</TabsTrigger>
+              <TabsTrigger value="uploads" className="data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground data-[state=active]:shadow-neon-red-light"><Upload className="h-4 w-4 mr-2"/>Uploads</TabsTrigger>
+            </TabsList>
+            <TabsContent value="twitter_fotos" className="pt-6">
+              <TwitterPhotos />
+            </TabsContent>
+            <TabsContent value="instagram" className="pt-6">
+              <InstagramProfileFeed />
+            </TabsContent>
+            <TabsContent value="uploads" className="pt-6">
+                <UploadsFeed />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </main>
+  );
+}

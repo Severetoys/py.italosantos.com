@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Configurações do Perfil</title>
+</head>
+
+<body>
+    <h1>Configurações do Perfil</h1>
+    {% if message %}
+    <p style="color:green;">{{ message }}</p>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <label>Nome:</label>
+        <input type="text" name="name" value="{{ settings.name }}"><br>
+        <label>Contato:</label>
+        <input type="text" name="contact" value="{{ settings.contact }}"><br>
+        <label>Foto de Perfil:</label><br>
+        <img src="{{ settings.profile_image }}" alt="Foto de Perfil" width="100"><br>
+        <label>Imagem de Capa:</label><br>
+        <img src="{{ settings.cover_image }}" alt="Imagem de Capa" width="300"><br>
+        <label>Galerias do Rodapé:</label><br>
+        {% for gallery in settings.galleries %}
+        <img src="{{ gallery }}" alt="Galeria" width="50">
+        {% endfor %}<br>
+        <button type="submit">Atualizar Configurações (exemplo)</button>
+    </form>
+    <a href="/admin-dashboard">Voltar para Dashboard</a>
+</body>
+
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Administração de Avaliações</title>
+</head>
+
+<body>
+    <h1>Administração de Avaliações</h1>
+    {% if message %}
+    <p style="color:green;">{{ message }}</p>
+    {% endif %}
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Usuário</th>
+            <th>Texto</th>
+            <th>Status</th>
+            <th>Data</th>
+            <th>Ações</th>
+        </tr>
+        {% for review in reviews %}
+        <tr>
+            <td>{{ review.id }}</td>
+            <td>{{ review.user }}</td>
+            <td>{{ review.text }}</td>
+            <td>{{ review.status }}</td>
+            <td>{{ review.created_at }}</td>
+            <td>
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="review_id" value="{{ review.id }}">
+                    <input type="hidden" name="action" value="aprovado">
+                    <button type="submit">Aprovar</button>
+                </form>
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="review_id" value="{{ review.id }}">
+                    <input type="hidden" name="action" value="rejeitado">
+                    <button type="submit">Rejeitar</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="/admin-dashboard">Voltar para Dashboard</a>
+</body>
+
+</html>

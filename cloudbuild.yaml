@@ -1,0 +1,28 @@
+steps:
+  # 1. Instalar as dependências e construir a aplicação Next.js
+  # Esta abordagem garante que ambos os comandos sejam executados na mesma shell,
+  # garantindo que as dependências instaladas pelo 'npm install' estejam disponíveis para o 'npm run build'.
+  - name: 'gcr.io/cloud-builders/npm'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - 'npm install && npm run build'
+
+  # 2. Fazer o deploy para o Firebase App Hosting
+  # Utiliza o Google Cloud SDK para implantar o backend no App Hosting.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'apphosting'
+      - 'backends'
+      - 'deploy'
+      - '${_BACKEND_ID}'
+      - '--region=us-central1'
+      - '--source=.'
+options:
+  # Define a máquina virtual a ser usada para a construção. 'e2-medium' é uma boa opção padrão.
+  machineType: 'E2_MEDIUM'
+  # Especifica como os logs do build devem ser tratados.
+  # CLOUD_LOGGING_ONLY é a opção recomendada para a maioria dos casos.
+  logging: CLOUD_LOGGING_ONLY
+nodeVersion: '22'

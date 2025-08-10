@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Administração de Fotos</title>
+</head>
+
+<body>
+    <h1>Administração de Fotos</h1>
+    {% if message %}
+    <p style="color:green;">{{ message }}</p>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <input type="text" name="title" placeholder="Título da foto" required>
+        <button type="submit">Adicionar Foto (exemplo)</button>
+    </form>
+    <h2>Fotos</h2>
+    <ul>
+        {% for photo in photos %}
+        <li>
+            <strong>{{ photo.title }}</strong> - {{ photo.created_at }}<br>
+            <img src="{{ photo.image_url }}" alt="{{ photo.title }}" width="150">
+        </li>
+        {% endfor %}
+    </ul>
+    <a href="/admin-dashboard">Voltar para Dashboard</a>
+</body>
+
+</html>

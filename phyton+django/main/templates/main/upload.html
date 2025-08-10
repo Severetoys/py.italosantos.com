@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Upload de Arquivo</title>
+</head>
+
+<body>
+    <h1>Upload de Arquivo</h1>
+    {% if message %}
+    <p style="color:green;">{{ message }}</p>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="file">
+        <button type="submit">Enviar</button>
+    </form>
+    <a href="/">Voltar para Home</a>
+</body>
+
+</html>

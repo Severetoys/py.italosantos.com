@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Administração de Vídeos</title>
+</head>
+
+<body>
+    <h1>Administração de Vídeos</h1>
+    {% if message %}
+    <p style="color:green;">{{ message }}</p>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <input type="text" name="title" placeholder="Título do vídeo" required><br>
+        <input type="text" name="description" placeholder="Descrição" required><br>
+        <input type="number" name="price" placeholder="Preço" required><br>
+        <button type="submit">Adicionar Vídeo (exemplo)</button>
+    </form>
+    <h2>Vídeos</h2>
+    <ul>
+        {% for video in videos %}
+        <li>
+            <strong>{{ video.title }}</strong> - {{ video.created_at }}<br>
+            {{ video.description }}<br>
+            Preço: R$ {{ video.price }}<br>
+            <img src="{{ video.thumbnail_url }}" alt="{{ video.title }}" width="150"><br>
+            <video src="{{ video.video_url }}" controls width="320"></video>
+        </li>
+        {% endfor %}
+    </ul>
+    <a href="/admin-dashboard">Voltar para Dashboard</a>
+</body>
+
+</html>

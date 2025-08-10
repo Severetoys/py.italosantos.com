@@ -1,0 +1,22 @@
+{
+  "data": {
+    "tweets": [
+      {
+        "id": "widget_fallback",
+        "text": "Widget do Twitter para @Severepics",
+        "media": [],
+        "created_at": "2025-08-07T04:38:02.182Z",
+        "username": "Severepics",
+        "profile_image_url": "",
+        "isRetweet": false,
+        "widget_html": "\n    <a class=\"twitter-timeline\" \n       href=\"https://twitter.com/Severepics?ref_src=twsrc%5Etfw\"\n       data-tweet-limit=\"20\"\n       data-chrome=\"noheader nofooter noborders transparent noscrollbar\"\n       data-theme=\"dark\">\n       Tweets by @Severepics\n    </a>\n    <script async src=\"https://platform.twitter.com/widgets.js\" charset=\"utf-8\"></script>\n    "
+      }
+    ],
+    "totalCount": 1,
+    "source": "Twitter Widget (fallback)"
+  },
+  "timestamp": 1754541482183,
+  "username": "Severepics",
+  "mediaType": "all",
+  "maxResults": 5
+}

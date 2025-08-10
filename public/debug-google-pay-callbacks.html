@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Pay Debug Test</title>
+    <script src="https://pay.google.com/gp/p/js/pay.js"></script>
+</head>
+<body>
+    <h1>Google Pay Callback Test</h1>
+    <button id="testBtn">Test Google Pay with Callbacks</button>
+    
+    <div id="logs" style="margin-top: 20px; background: #f0f0f0; padding: 10px; white-space: pre-wrap;"></div>
+
+    <script>
+        const log = (message) => {
+            console.log(message);
+            document.getElementById('logs').textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+        };
+
+        document.getElementById('testBtn').addEventListener('click', async () => {
+            try {
+                log('Iniciando teste Google Pay...');
+
+                // Callback de autorização
+                const onPaymentAuthorized = (paymentData) => {
+                    log('Callback onPaymentAuthorized executado');
+                    log('PaymentData: ' + JSON.stringify(paymentData, null, 2));
+                    
+                    return new Promise((resolve) => {
+                        // Simular processamento
+                        setTimeout(() => {
+                            log('Retornando SUCCESS do callback');
+                            resolve({ transactionState: 'SUCCESS' });
+                        }, 1000);
+                    });
+                };
+
+                const paymentsClient = new google.payments.api.PaymentsClient({
+                    environment: 'TEST'
+                });
+
+                const paymentDataRequest = {
+                    apiVersion: 2,
+                    apiVersionMinor: 0,
+                    allowedPaymentMethods: [{
+                        type: 'CARD',
+                        parameters: {
+                            allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+                            allowedCardNetworks: ['VISA', 'MASTERCARD']
+                        },
+                        tokenizationSpecification: {
+                            type: 'DIRECT',
+                            parameters: {
+                                protocolVersion: 'ECv2',
+                                publicKey: 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGnJ7Yo1sX9b4kr4Aa5uq58JRQfzD8bIJXw7WXaap/hVE+PnFxvjx4nVxt79SdRuUVeu++HZD0cGAv4IOznc96w=='
+                            }
+                        }
+                    }],
+                    transactionInfo: {
+                        totalPriceStatus: 'FINAL',
+                        totalPrice: '99.00',
+                        currencyCode: 'BRL'
+                    },
+                    callbackIntents: ['PAYMENT_AUTHORIZATION'],
+                    paymentDataCallbacks: {
+                        onPaymentAuthorized: onPaymentAuthorized
+                    }
+                };
+
+                log('Configuração do request:');
+                log('- callbackIntents: ' + JSON.stringify(paymentDataRequest.callbackIntents));
+                log('- paymentDataCallbacks: ' + !!paymentDataRequest.paymentDataCallbacks);
+                log('- onPaymentAuthorized: ' + typeof paymentDataRequest.paymentDataCallbacks.onPaymentAuthorized);
+
+                log('Chamando loadPaymentData...');
+                const result = await paymentsClient.loadPaymentData(paymentDataRequest);
+                log('Sucesso! Result: ' + JSON.stringify(result, null, 2));
+
+            } catch (error) {
+                log('ERRO: ' + error.statusCode + ' - ' + error.statusMessage);
+                log('Erro completo: ' + JSON.stringify(error, null, 2));
+            }
+        });
+    </script>
+</body>
+</html>

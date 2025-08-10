@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Google Pay Standalone Test</title>
+  <script src="https://pay.google.com/gp/p/js/pay.js"></script>
+  <style>
+    body { font-family: sans-serif; background: #f8f8f8; padding: 40px; }
+    #gpay-btn { margin-top: 40px; }
+    #log { background: #222; color: #fff; padding: 10px; margin-top: 30px; font-size: 14px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <h1>Google Pay Standalone Test (Localhost)</h1>
+  <div id="gpay-btn"></div>
+  <div id="log"></div>
+  <script>
+    function log(msg) {
+      document.getElementById('log').innerHTML += msg + '<br>';
+      console.log(msg);
+    }
+
+    const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    const merchantId = isLocalhost ? '01234567890123456789' : 'BCR2DN4T6OKKN3DX';
+    const merchantName = isLocalhost ? 'Studio Test (Localhost)' : 'Italo Santos';
+
+    const baseRequest = {
+      apiVersion: 2,
+      apiVersionMinor: 0
+    };
+    const allowedCardNetworks = ['AMEX', 'DISCOVER', 'JCB', 'MASTERCARD', 'VISA'];
+    const allowedCardAuthMethods = ['PAN_ONLY', 'CRYPTOGRAM_3DS'];
+    const cardPaymentMethod = {
+      type: 'CARD',
+      parameters: {
+        allowedAuthMethods: allowedCardAuthMethods,
+        allowedCardNetworks: allowedCardNetworks
+      },
+      tokenizationSpecification: {
+        type: 'DIRECT',
+        parameters: {
+          protocolVersion: 'ECv2',
+          publicKey: 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGnJ7Yo1sX9b4kr4Aa5uq58JRQfzD8bIJXw7WXaap/hVE+PnFxvjx4nVxt79SdRuUVeu++HZD0cGAv4IOznc96w=='
+        }
+      }
+    };
+
+    function getPaymentDataRequest() {
+      return {
+        ...baseRequest,
+        allowedPaymentMethods: [cardPaymentMethod],
+        transactionInfo: {
+          totalPriceStatus: 'FINAL',
+          totalPriceLabel: 'Total',
+          totalPrice: '99.00',
+          currencyCode: 'BRL',
+          countryCode: 'BR'
+        },
+        merchantInfo: {
+          merchantId: merchantId,
+          merchantName: merchantName
+        },
+        callbackIntents: ['PAYMENT_AUTHORIZATION'],
+        paymentDataCallbacks: {
+          onPaymentAuthorized: (paymentData) => {
+            log('onPaymentAuthorized callback executado!');
+            log('paymentData: ' + JSON.stringify(paymentData));
+            return Promise.resolve({ transactionState: 'SUCCESS' });
+          }
+        }
+      };
+    }
+
+    function onLoad() {
+      if (!window.google || !window.google.payments || !window.google.payments.api) {
+        log('Google Pay API não carregada!');
+        return;
+      }
+      const paymentsClient = new google.payments.api.PaymentsClient({ environment: 'TEST' });
+      paymentsClient.isReadyToPay({
+        ...baseRequest,
+        allowedPaymentMethods: [{
+          type: 'CARD',
+          parameters: {
+            allowedAuthMethods: allowedCardAuthMethods,
+            allowedCardNetworks: allowedCardNetworks
+          }
+        }]
+      }).then(function(response) {
+        if (response.result) {
+          log('Google Pay disponível!');
+          const button = paymentsClient.createButton({
+            onClick: () => {
+              const req = getPaymentDataRequest();
+              log('Request enviado para loadPaymentData: ' + JSON.stringify(req));
+              paymentsClient.loadPaymentData(req)
+                .then(data => log('Pagamento OK: ' + JSON.stringify(data)))
+                .catch(err => log('Erro: ' + JSON.stringify(err)));
+            },
+            allowedPaymentMethods: [cardPaymentMethod],
+            buttonColor: 'black',
+            buttonType: 'pay',
+            buttonSizeMode: 'fill'
+          });
+          document.getElementById('gpay-btn').appendChild(button);
+        } else {
+          log('Google Pay não disponível neste navegador/dispositivo.');
+        }
+      }).catch(function(err) {
+        log('Erro no isReadyToPay: ' + JSON.stringify(err));
+      });
+    }
+
+    if (window.google && window.google.payments && window.google.payments.api) {
+      onLoad();
+    } else {
+      window.addEventListener('load', onLoad);
+    }
+  </script>
+</body>
+</html>

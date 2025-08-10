@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste de Proteção - Galeria Assinantes</title>
+</head>
+<body>
+    <h1>Teste de Proteção da Galeria de Assinantes</h1>
+    
+    <div>
+        <h2>Ações de Teste</h2>
+        <button onclick="clearAuth()">Limpar Autenticação</button>
+        <button onclick="clearSubscription()">Limpar Assinatura</button>
+        <button onclick="clearAll()">Limpar Tudo</button>
+        <button onclick="checkAccess()">Verificar Acesso Atual</button>
+        <button onclick="testGaleria()">Testar Acesso à Galeria</button>
+    </div>
+    
+    <div id="status" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;">
+        Status: Aguardando teste...
+    </div>
+    
+    <script>
+        function updateStatus(msg) {
+            document.getElementById('status').innerHTML = msg;
+        }
+        
+        function clearAuth() {
+            localStorage.removeItem('isAuthenticated');
+            localStorage.removeItem('userType');
+            localStorage.removeItem('userEmail');
+            
+            // Limpar cookies
+            document.cookie = 'isAuthenticated=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+            
+            updateStatus('✅ Autenticação limpa! Usuário não está mais autenticado.');
+        }
+        
+        function clearSubscription() {
+            localStorage.removeItem('hasSubscription');
+            localStorage.removeItem('hasActiveSubscription');
+            localStorage.removeItem('subscriptionData');
+            
+            // Limpar cookies
+            document.cookie = 'hasSubscription=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+            
+            updateStatus('✅ Assinatura limpa! Usuário não tem mais assinatura ativa.');
+        }
+        
+        function clearAll() {
+            // Limpar localStorage
+            localStorage.clear();
+            
+            // Limpar todos os cookies relevantes
+            document.cookie = 'isAuthenticated=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+            document.cookie = 'hasSubscription=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+            
+            updateStatus('✅ Todos os dados limpos! Usuário não autenticado e sem assinatura.');
+        }
+        
+        function checkAccess() {
+            const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+            const hasSubscription = localStorage.getItem('hasSubscription') === 'true';
+            const userEmail = localStorage.getItem('userEmail');
+            
+            let status = '<h3>Status Atual:</h3>';
+            status += `<p>🔑 Autenticado: ${isAuthenticated ? '✅ Sim' : '❌ Não'}</p>`;
+            status += `<p>💎 Assinatura Ativa: ${hasSubscription ? '✅ Sim' : '❌ Não'}</p>`;
+            status += `<p>📧 Email: ${userEmail || 'Não definido'}</p>`;
+            
+            updateStatus(status);
+        }
+        
+        function testGaleria() {
+            updateStatus('🔄 Redirecionando para galeria de assinantes...');
+            window.location.href = '/galeria-assinantes';
+        }
+        
+        // Verificar status inicial
+        checkAccess();
+    </script>
+</body>
+</html>

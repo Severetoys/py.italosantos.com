@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Conversas Administrativas</title>
+</head>
+
+<body>
+    <h1>Conversas Administrativas</h1>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Criado em</th>
+            <th>Última mensagem</th>
+            <th>Enviada por</th>
+            <th>Timestamp</th>
+        </tr>
+        {% for chat in chats %}
+        <tr>
+            <td>{{ chat.id }}</td>
+            <td>{{ chat.created_at }}</td>
+            <td>{{ chat.last_message.text }}</td>
+            <td>{{ chat.last_message.sender_id }}</td>
+            <td>{{ chat.last_message.timestamp }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="/admin-dashboard">Voltar para Dashboard</a>
+</body>
+
+</html>

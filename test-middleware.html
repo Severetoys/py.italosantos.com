@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Middleware - Galeria Assinantes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            background: #007cba;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #005a87;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 3px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <h1>🛡️ Teste de Middleware - Galeria Assinantes</h1>
+    
+    <div class="test-section">
+        <h2>1. Configurar Cookies de Autenticação</h2>
+        <p>Simula um usuário autenticado com assinatura ativa:</p>
+        <button onclick="setAuthenticatedCookies()">✅ Definir Como Autenticado com Assinatura</button>
+        <button onclick="setUnauthenticatedCookies()">❌ Definir Como Não Autenticado</button>
+        <button onclick="setNoSubscriptionCookies()">⚠️ Autenticado SEM Assinatura</button>
+        <div id="cookieStatus" class="status warning">
+            <strong>Status atual dos cookies:</strong>
+            <div id="cookieDisplay"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Testar Acesso à Galeria</h2>
+        <p>Tenta acessar a página protegida:</p>
+        <button onclick="testGaleriaAccess()">🔍 Testar Acesso à Galeria</button>
+        <div id="accessStatus" class="status warning">
+            <strong>Resultado do teste:</strong>
+            <div id="accessResult">Clique no botão para testar</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Informações de Debug</h2>
+        <button onclick="showDebugInfo()">🔧 Mostrar Debug</button>
+        <div id="debugInfo" class="status warning">
+            <div id="debugDisplay">Clique para ver informações de debug</div>
+        </div>
+    </div>
+
+    <script>
+        function setAuthenticatedCookies() {
+            // Define cookies que simulam usuário autenticado com assinatura
+            document.cookie = 'isAuthenticated=true; path=/; max-age=86400';
+            document.cookie = 'hasSubscription=true; path=/; max-age=86400';
+            
+            // Define também no localStorage para compatibilidade
+            localStorage.setItem('isAuthenticated', 'true');
+            localStorage.setItem('hasSubscription', 'true');
+            localStorage.setItem('userEmail', 'test@example.com');
+            
+            updateCookieDisplay();
+            showStatus('cookieStatus', 'success', '✅ Usuário configurado como autenticado COM assinatura');
+        }
+
+        function setUnauthenticatedCookies() {
+            // Remove todos os cookies de autenticação
+            document.cookie = 'isAuthenticated=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+            document.cookie = 'hasSubscription=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+            
+            // Remove do localStorage
+            localStorage.removeItem('isAuthenticated');
+            localStorage.removeItem('hasSubscription');
+            localStorage.removeItem('userEmail');
+            
+            updateCookieDisplay();
+            showStatus('cookieStatus', 'error', '❌ Usuário configurado como NÃO autenticado');
+        }
+
+        function setNoSubscriptionCookies() {
+            // Define apenas autenticação, sem assinatura
+            document.cookie = 'isAuthenticated=true; path=/; max-age=86400';
+            document.cookie = 'hasSubscription=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+            
+            localStorage.setItem('isAuthenticated', 'true');
+            localStorage.removeItem('hasSubscription');
+            localStorage.setItem('userEmail', 'test@example.com');
+            
+            updateCookieDisplay();
+            showStatus('cookieStatus', 'warning', '⚠️ Usuário autenticado SEM assinatura');
+        }
+
+        function updateCookieDisplay() {
+            const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+                const [key, value] = cookie.trim().split('=');
+                if (key && (key === 'isAuthenticated' || key === 'hasSubscription')) {
+                    acc[key] = value || 'não definido';
+                }
+                return acc;
+            }, {});
+            
+            const display = document.getElementById('cookieDisplay');
+            display.innerHTML = `
+                <strong>Cookies:</strong><br>
+                • isAuthenticated: ${cookies.isAuthenticated || 'não definido'}<br>
+                • hasSubscription: ${cookies.hasSubscription || 'não definido'}<br>
+                <strong>LocalStorage:</strong><br>
+                • isAuthenticated: ${localStorage.getItem('isAuthenticated') || 'não definido'}<br>
+                • hasSubscription: ${localStorage.getItem('hasSubscription') || 'não definido'}<br>
+                • userEmail: ${localStorage.getItem('userEmail') || 'não definido'}
+            `;
+        }
+
+        async function testGaleriaAccess() {
+            showStatus('accessStatus', 'warning', '🔍 Testando acesso...');
+            
+            try {
+                const response = await fetch('/galeria-assinantes', {
+                    method: 'GET',
+                    credentials: 'include', // Inclui cookies na requisição
+                    headers: {
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+                    }
+                });
+                
+                const resultDiv = document.getElementById('accessResult');
+                
+                if (response.redirected) {
+                    showStatus('accessStatus', 'error', 
+                        `❌ REDIRECIONADO: ${response.url}<br>
+                         Status: ${response.status}<br>
+                         Middleware funcionou corretamente!`);
+                } else if (response.ok) {
+                    const text = await response.text();
+                    if (text.includes('Galeria Exclusiva')) {
+                        showStatus('accessStatus', 'success', 
+                            `✅ ACESSO PERMITIDO<br>
+                             Status: ${response.status}<br>
+                             Página carregada com sucesso`);
+                    } else {
+                        showStatus('accessStatus', 'warning', 
+                            `⚠️ RESPOSTA INESPERADA<br>
+                             Status: ${response.status}<br>
+                             Conteúdo não é a galeria esperada`);
+                    }
+                } else {
+                    showStatus('accessStatus', 'error', 
+                        `❌ ERRO HTTP: ${response.status}<br>
+                         ${response.statusText}`);
+                }
+            } catch (error) {
+                showStatus('accessStatus', 'error', 
+                    `❌ ERRO DE REDE: ${error.message}`);
+            }
+        }
+
+        function showDebugInfo() {
+            const debugDiv = document.getElementById('debugDisplay');
+            debugDiv.innerHTML = `
+                <strong>URL atual:</strong> ${window.location.href}<br>
+                <strong>User Agent:</strong> ${navigator.userAgent}<br>
+                <strong>Timestamp:</strong> ${new Date().toISOString()}<br>
+                <strong>Todos os cookies:</strong> ${document.cookie || 'nenhum'}<br>
+                <strong>LocalStorage keys:</strong> ${Object.keys(localStorage).join(', ')}<br>
+                <strong>Protocolo:</strong> ${window.location.protocol}
+            `;
+            
+            showStatus('debugInfo', 'warning', 'Informações de debug atualizadas');
+        }
+
+        function showStatus(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            element.className = `status ${type}`;
+            
+            if (elementId === 'accessStatus') {
+                document.getElementById('accessResult').innerHTML = message;
+            } else if (elementId === 'cookieStatus') {
+                updateCookieDisplay();
+            }
+        }
+
+        // Atualizar display inicial
+        window.onload = function() {
+            updateCookieDisplay();
+        };
+    </script>
+</body>
+</html>

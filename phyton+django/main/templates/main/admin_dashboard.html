@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Admin</title>
+</head>
+
+<body>
+    <h1>Dashboard Administrativo</h1>
+    <h2>Estatísticas</h2>
+    <ul>
+        <li>Total de assinantes: {{ stats.total_subscribers }}</li>
+        <li>Total de conversas: {{ stats.total_conversations }}</li>
+        <li>Total de produtos: {{ stats.total_products }}</li>
+        <li>Reviews pendentes: {{ stats.pending_reviews }}</li>
+    </ul>
+    <h2>Páginas mais acessadas</h2>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Path</th>
+            <th>Contagem</th>
+        </tr>
+        {% for page in top_pages %}
+        <tr>
+            <td>{{ page.id }}</td>
+            <td>{{ page.path }}</td>
+            <td>{{ page.count }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="/">Voltar para Home</a>
+</body>
+
+</html>

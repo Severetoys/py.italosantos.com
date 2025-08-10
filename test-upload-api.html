@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Upload API Admin</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <h1>Teste Upload API Admin</h1>
+    <button onclick="testAPI()">Testar API</button>
+    <div id="results"></div>
+
+    <script>
+        async function testAPI() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<div class="info">Testando API...</div>';
+            
+            try {
+                // Primeiro teste: verificar se a API responde
+                console.log('Testando conexão com API...');
+                const response = await fetch('/api/admin/upload', {
+                    method: 'POST',
+                    body: new FormData() // FormData vazio
+                });
+                
+                console.log('Status:', response.status);
+                console.log('Headers:', [...response.headers.entries()]);
+                
+                if (response.status === 405) {
+                    results.innerHTML = '<div class="error">❌ Erro 405: Método não permitido - API não exporta POST</div>';
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('Resposta:', data);
+                
+                if (response.status === 400 && data.message === 'Nenhum arquivo enviado') {
+                    results.innerHTML = '<div class="success">✅ API funcionando! (Erro esperado: nenhum arquivo)</div>';
+                } else {
+                    results.innerHTML = `<div class="info">Status: ${response.status}<br>Resposta: ${JSON.stringify(data)}</div>`;
+                }
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                results.innerHTML = `<div class="error">❌ Erro na requisição: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
