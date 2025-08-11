@@ -1,0 +1,10 @@
+django>=4.2
+requests
+gunicorn
+face_recognition
+tweepy
+openai
+redis
+facebook-sdk
+python-instagram
+google-generativeai
